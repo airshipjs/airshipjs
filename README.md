@@ -24,3 +24,4 @@ cd ../provider
 python -m SimpleHTTPServer 3001
 ```
 
+Open http://localhost:3000 and click on buttons to test
