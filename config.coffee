@@ -16,6 +16,7 @@ exports.config =
       order:
         before: [
           'vendor/scripts/console-polyfill.js',
+          'vendor/scripts/zepto.js',
         ]
         after: [
           'test/vendor/scripts/test-helper.js'
