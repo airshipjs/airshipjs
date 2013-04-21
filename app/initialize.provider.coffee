@@ -1,3 +1,5 @@
 Provider = require 'provider'
 
-(new Provider).initialize()
+# Initialize the application on DOM ready event
+$ ->
+  (new Provider).initialize()
