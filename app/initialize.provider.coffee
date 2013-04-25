@@ -1,5 +1,5 @@
-Provider = require 'provider'
+Provider = require 'lib/airship/provider'
 
-# Initialize the application on DOM ready event
+# Initialize on DOM ready event
 $ ->
-  (new Provider).initialize()
+  window.provider = (new Provider).initialize()

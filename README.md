@@ -15,16 +15,21 @@ easyXDM.js is used to communicate with airship.js.
 
 Run two servers, one for the consumer (app site) and one for the provider (airship).
 
-With python >=2.4 installed ...
+Install [brunch](http://brunch.io) and python >=2.4
 
 ```bash
-cd consumer
-python -m SimpleHTTPServer 3000
-cd ../provider
-python -m SimpleHTTPServer 3001
+npm -g install brunch
 ```
 
-Open http://localhost:3000 and click on buttons to test
+Start servers
+
+```bash
+brunch watch --server
+cd public
+python -m SimpleHTTPServer 3003
+```
+
+Open http://localhost:3333
 
 
 
