@@ -5,117 +5,49 @@
 
 var call = Pouch.utils.call;
 
-var DOC_STORE = 'document-store';
-var BY_SEQ_STORE = 'by-sequence';
-var ATTACH_STORE = 'attach-store';
-var ATTACH_BINARY_STORE = 'attach-binary-store';
-
-// leveldb barks if we try to open a db multiple times
-// so we cache opened connections here for initstore()
-var STORES = {};
-
-// global store of change_emitter objects (one per db name)
-// this allows replication to work by providing a db name as the src
-var CHANGES = {};
+var DOC_STORE_DIR = '/document_store/';
+var BY_SEQ_STORE_DIR = '/by_sequence/';
+var ATTACH_STORE_DIR = '/attach_store/';
+var ATTACH_BINARY_STORE_DIR = '/attach_binary_store/';
 
 // store the value of update_seq in the by-sequence store the key name will
 // never conflict, since the keys in the by-sequence store are integers
-var UPDATE_SEQ_KEY = '_local_last_update_seq';
-var DOC_COUNT_KEY = '_local_doc_count';
+var UPDATE_SEQ_FILE = 'local_last_update_seq';
+var DOC_COUNT_FILE = 'local_doc_count';
 
 var DropboxPouch = function(opts, callback) {
-  var opened = false;
+  var  = false;
   var api = {};
-  var update_seq = 0;
-  var doc_count = 0;
-  var stores = {};
+  var update_seq = -1;
+  var doc_count = -1;
   var name = opts.name;
-  var change_emitter = CHANGES[name] || new EventEmitter();
+  //var change_emitter = CHANGES[name] || new EventEmitter();
 
-  CHANGES[name] = change_emitter;
-
-  function initstore(store_name, encoding) {
-    var dbpath = path.resolve(path.join(opts.name, store_name));
-    opts.valueEncoding = encoding || 'json';
-
-    // createIfMissing = true by default
-    opts.createIfMissing = opts.createIfMissing === undefined ?
-      true : opts.createIfMissing;
-
-    function setup_store(err, ldb) {
-      if (stores.err) {
-        return;
-      }
-      if (err) {
-        stores.err = err;
-        return call(callback, err);
-      }
-
-      stores[store_name] = ldb;
-      STORES[dbpath] = ldb;
-
-      if (!stores[DOC_STORE] ||
-          !stores[BY_SEQ_STORE] ||
-          !stores[ATTACH_STORE] ||
-          !stores[ATTACH_BINARY_STORE]) {
-        return;
-      }
-
-      update_seq = doc_count = -1;
-
-      function finish() {
-        if (doc_count >= 0 && update_seq >= 0) {
-          opened = true;
-          process.nextTick(function() { call(callback, null, api); });
-        }
-      }
-
-      stores[BY_SEQ_STORE].get(DOC_COUNT_KEY, function(err, value) {
-        if (!err) {
-          doc_count = value;
-        }
-        else {
-          doc_count = 0;
-        }
-        finish();
-      });
-
-      stores[BY_SEQ_STORE].get(UPDATE_SEQ_KEY, function(err, value) {
-        if (!err) {
-          update_seq = value;
-        }
-        else {
-          update_seq = 0;
-        }
-        finish();
-      });
-    }
-
-    if (STORES[dbpath] !== undefined) {
-      setup_store(null, STORES[dbpath]);
-    }
-    else {
-      levelup(dbpath, opts, setup_store);
+  var finish = function () {
+    if (update_seq > 0 && doc_count > 0) {
+      opened = true;
+      call(callback, null, api);    
     }
   }
 
-  fs.stat(opts.name, function(err, stats) {
-    function initstores() {
-      initstore(DOC_STORE, 'json');
-      initstore(BY_SEQ_STORE, 'json');
-      initstore(ATTACH_STORE, 'json');
-      initstore(ATTACH_BINARY_STORE, 'binary');
-    }
-    if (err && err.code === 'ENOENT') {
-      // db directory doesn't exist
-      fs.mkdir(opts.name, initstores);
-    }
-    else if (stats.isDirectory()) {
-      initstores();
+  dropbox.readFile(name + BY_SEQ_STORE_DIR + DOC_COUNT_FILE, function(error, data) {
+    if (!error) {
+      doc_count = value;
     }
     else {
-      // error
+      doc_count = 0;
     }
+    finish();
+  });
+
+  dropbox.readFile(name + BY_SEQ_STORE_DIR + UPDATE_SEQ_FILE, function(error, data) {
+    if (!error) {
+      update_seq = value;
+    }
+    else {
+      update_seq = 0;
+    }
+    finish();
   });
 
   api.type = function() {
