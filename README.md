@@ -1,14 +1,29 @@
 The goal of airship.js is to provide a standard API for storing, retrieving, and syncing
-data for unhosted apps. A key design principle is to allow unhosted apps served from any 
-domain to request access to IndexedDB data stored under the airship.io domain. This 
-allows apps to share the same locally cached data like contacts, global preferences, etc. 
+data for unhosted apps. A key design principle is to allow unhosted apps served from any
+domain to request access to IndexedDB data stored under the airship.io domain. This
+allows apps to share the same locally cached data like contacts, global preferences, etc.
 to improve overall user experience.
 
 The airship.js file is served from http://airship.io in an iframe.
 
 easyXDM.js is used to communicate with airship.js.
 
+This project is experimental.
 
+
+#  Notes
+
+Conceptually, airship.js serves as a local cache and proxy for browser based apps
+to access the user's personal data.
+
+In the current example, the airship.js iframe is used to trigger a Dropbox
+authentication request. While this works, there's a UX security issue in that the
+Dropbox popup does not provide a way for the user to verify that it was the airship.js
+iframe that triggered the request vs any random script that calls itself "Airship".
+
+This security issue can be solved by using a personal cloud instead of Dropbox
+that addresses this UX issue by visually verifying to the suer that the request
+can from a verified app.
 
 
 # Running
